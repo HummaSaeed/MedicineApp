@@ -1,20 +1,34 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, Text, ImageBackground, View } from "react-native";
+import backgroundImage from "./assets/bg.png";
+import { useFonts } from "expo-font";
+// import LoginScreen from "./screens/LoginScreen";
+import AppNavigator from "./navigation/AppNavigator";
+import AppStack from "./navigation/AppStack";
+import AppLoading from "./AppLoading";
+import { NavigationContainer } from "@react-navigation/native";
+import LoginScreen from "./screens/LoginScreen";
+// import DrawerNavigator from "./navigation/DrawerNavigator";
 
 export default function App() {
+  let [fontsLoaded] = useFonts({
+    "Barlow-Regular": require("./assets/fonts/Barlow-Regular.ttf"),
+    "Barlow-SemiBold": require("./assets/fonts/Barlow-SemiBold.ttf"),
+    "Barlow-Bold": require("./assets/fonts/Barlow-Bold.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+    <>
       <StatusBar style="auto" />
-    </View>
+      {/* <LoginScreen /> */}
+      <NavigationContainer>
+       <AppNavigator/>
+     </NavigationContainer>
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const styles = StyleSheet.create({});
