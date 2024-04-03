@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -17,6 +17,7 @@ import Cancel from "../components/Cancel";
 import PendingList from "../components/PedingList";
 import ConfirmedList from "../components/ConfirmedList";
 import CompletedList from "../components/CompletedList";
+import * as Location from 'expo-location';
 
 import { data } from "../utils/Data.js";
 import { Iconify } from "react-native-iconify";
@@ -32,13 +33,45 @@ const windowHeight = Dimensions.get("window").height;
 const HomeScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState("Pending");
   const [showNotificationBar, setShowNotificationBar] = useState(true);
-  console.log(data);
+const [cityName, setcityName] = useState("");
+const [countryName, setcountryName] = useState("");
+ 
   const handleCloseNotification = () => {
     setShowNotificationBar(false);
   };
   const openDrawer = () => {
     navigation.openDrawer();
   };
+  const getLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      console.error('Permission to access location was denied');
+      return;
+    }
+  
+    let location = await Location.getCurrentPositionAsync({});
+    return location;
+  };
+  const getLocationDetails = async () => {
+    try {
+      const location = await getLocation();
+      if (location) {
+        const { latitude, longitude } = location.coords;
+        let reverseGeocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+        if (reverseGeocode.length > 0) {
+          let { city, country } = reverseGeocode[0];
+          setcityName(city);
+          setcountryName(country);
+          console.log(`City: ${city}, Country: ${country}`);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    getLocationDetails();
+  }, []);
   return (
     <Layout>
       <TopBar
@@ -50,7 +83,7 @@ const HomeScreen = ({ navigation }) => {
       />
       <View style={styles.subhead}>
         <Text style={styles.title}>Current City: </Text>
-        <Text style={styles.subtitle}>Orlando, USA</Text>
+        <Text style={styles.subtitle}>{cityName}, {countryName}</Text>
       </View>
       {showNotificationBar && (
         <View style={styles.notificationBar}>

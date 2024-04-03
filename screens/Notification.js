@@ -1,53 +1,45 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import { useSelector, useDispatch } from "react-redux";
 import TopBar from "../components/TopBar";
 import Layout from "./Layout";
 import { AntDesign } from "@expo/vector-icons";
 
-const Notification = ({ navigation }) => {
+const Notification = ({ navigation, route }) => {
   const [showModal, setShowModal] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const token = useSelector((state) => state.auth.user.accessToken);
+  const userId = useSelector((state) => state.auth.user.id);
+  console.log(token)
+console.log(userId)
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
-  const notifications = [
-    {
-      id: "1",
-      title: "Lease View",
-      content: "Law enforcement agency personnel just viewed your lease ID 123",
-      time: "9:45 AM",
-    },
-    {
-      id: "2",
-      title: "Lease View",
-      content: "Law enforcement agency personnel just viewed your lease ID 123",
-      time: "9:45 AM",
-    },
-    {
-      id: "3",
-      title: "Lease View",
-      content: "Law enforcement agency personnel just viewed your lease ID 123",
-      time: "9:45 AM",
-    },
-    {
-      id: "3",
-      title: "Lease View",
-      content: "Law enforcement agency personnel just viewed your lease ID 123",
-      time: "9:45 AM",
-    },
-    {
-      id: "4",
-      title: "Lease View",
-      content: "Law enforcement agency personnel just viewed your lease ID 123",
-      time: "9:5 AM",
+  const fetchNotifications = async () => {
+    try {
+      // User ID for whom notifications are fetched
+      const response = await fetch(`https://family-dr.vercel.app/api/notifications?pageSize=50&page=1&userId=${userId}`, {
+        headers: {
+          token: token,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      console.log(data);
+      setNotifications(data.data.notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
     }
-    // Add more notifications as needed
-  ];
+  };
 
   const deleteNotification = (id) => {
     // Implement delete logic here
     console.log(`Deleted notification with id: ${id}`);
   };
 
-  const renderNotification = ({ item }) => {
+  const renderNotification = (item) => {
     const swipeRightActions = (_, dragX) => {
       const scale = dragX.interpolate({
         inputRange: [-40, 0],
@@ -84,7 +76,7 @@ const Notification = ({ navigation }) => {
             <Text style={styles.notificationTime}>{item.time}</Text>
           </View>
           <View style={styles.rightContent}>
-            <Text style={styles.notificationText}>{item.content}</Text>
+            <Text style={styles.notificationText}>{item.message}</Text>
           </View>
         </View>
       </Swipeable>
@@ -119,8 +111,8 @@ const Notification = ({ navigation }) => {
         <TouchableOpacity onPress={handleDeleteAll}>
           <Text style={styles.deleteAllButton}>Clear All</Text>
         </TouchableOpacity>
-        {notifications.slice().map((item) => (
-          <View key={item.id}>{renderNotification({ item })}</View>
+        {notifications.map((item) => (
+          <View key={item.id}>{renderNotification(item)}</View>
         ))}
       </View>
       <Modal
@@ -154,6 +146,7 @@ const Notification = ({ navigation }) => {
     </Layout>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

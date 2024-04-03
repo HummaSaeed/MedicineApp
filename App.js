@@ -2,13 +2,13 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, ImageBackground, View } from "react-native";
 import backgroundImage from "./assets/bg.png";
 import { useFonts } from "expo-font";
-// import LoginScreen from "./screens/LoginScreen";
 import AppNavigator from "./navigation/AppNavigator";
-import AppStack from "./navigation/AppStack";
 import AppLoading from "./AppLoading";
 import { NavigationContainer } from "@react-navigation/native";
-import LoginScreen from "./screens/LoginScreen";
-// import DrawerNavigator from "./navigation/DrawerNavigator";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "./store";
+// const { EventEmitter } = require('events');
 
 export default function App() {
   let [fontsLoaded] = useFonts({
@@ -16,19 +16,21 @@ export default function App() {
     "Barlow-SemiBold": require("./assets/fonts/Barlow-SemiBold.ttf"),
     "Barlow-Bold": require("./assets/fonts/Barlow-Bold.ttf"),
   });
-
+  // EventEmitter.defaultMaxListeners = 15;
   if (!fontsLoaded) {
     return <AppLoading />;
   }
 
   return (
-    <>
-      <StatusBar style="auto" />
-      {/* <LoginScreen /> */}
-      <NavigationContainer>
-       <AppNavigator/>
-     </NavigationContainer>
-    </>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <StatusBar style="auto" />
+
+        <NavigationContainer>
+          <AppNavigator />
+        </NavigationContainer>
+      </PersistGate>
+    </Provider>
   );
 }
 const styles = StyleSheet.create({});
