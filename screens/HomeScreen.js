@@ -69,8 +69,24 @@ const [countryName, setcountryName] = useState("");
       console.error(error);
     }
   };
+  const getAppointments =()=>{
+    const myHeaders = new Headers();
+myHeaders.append("token", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NWRiNGYyYWM3NTliYWE0NmU2MWNkNzYiLCJleHAiOjE3MTQ3NTgxNzEsImlhdCI6MTcxMjE2NjE3MX0.dnJp6n7842Yy1MpjQcDsJj46GMr2w9T9Td3RI2pabJc");
+
+const requestOptions = {
+  method: "GET",
+  headers: myHeaders,
+  redirect: "follow"
+};
+
+fetch("https://family-dr.vercel.app/api/appointments?pageSize=50&page=1&doctorId=65c8dd6ab7653b60ed5234e8", requestOptions)
+  .then((response) => response.text())
+  .then((result) => console.log(result))
+  .catch((error) => console.error(error));
+  }
   useEffect(() => {
     getLocationDetails();
+    getAppointments();
   }, []);
   return (
     <Layout>
