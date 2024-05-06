@@ -26,7 +26,7 @@ import PrescriptionUpload from "../screens/PrescriptionUpload";
 import ManagePatient from "../screens/ManagePatient";
 import ManageAddress from "../screens/ManageAddress";
 import AddressDetail from "../screens/AddressDetail";
-
+import Toast from 'react-native-toast-message';
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -111,11 +111,7 @@ const AppNavigator = () => {
        <Stack.Screen name="PatientReview" component={PatientReview}  screenOptions={{
         headerShown: false, 
       }}/>
-      {/* 
-      
-       
-     
-      */}
+ 
     </Stack.Navigator>
   );
 };

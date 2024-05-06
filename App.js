@@ -8,6 +8,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
+
 // const { EventEmitter } = require('events');
 
 export default function App() {

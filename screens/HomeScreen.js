@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 import TopBar from "../components/TopBar";
 import Layout from "./Layout";
 import CarousalComponent from "../components/CarousalComponent";
@@ -17,8 +18,8 @@ import Cancel from "../components/Cancel";
 import PendingList from "../components/PedingList";
 import ConfirmedList from "../components/ConfirmedList";
 import CompletedList from "../components/CompletedList";
-import * as Location from 'expo-location';
-
+import * as Location from "expo-location";
+import { fetchAppointments } from "../auth/appointmentSlice";
 import { data } from "../utils/Data.js";
 import { Iconify } from "react-native-iconify";
 import {
@@ -33,22 +34,30 @@ const windowHeight = Dimensions.get("window").height;
 const HomeScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState("Pending");
   const [showNotificationBar, setShowNotificationBar] = useState(true);
-const [cityName, setcityName] = useState("");
-const [countryName, setcountryName] = useState("");
- 
+  const [cityName, setcityName] = useState("");
+  const [countryName, setcountryName] = useState("");
+  const profiledataslice = useSelector((state) => state.profile);
+
+  const appointmentsdata = useSelector((state) => state.appointments);
+  
+  const dispatch = useDispatch();
+
+  const { user } = useSelector((state) => state.auth);
+  
   const handleCloseNotification = () => {
     setShowNotificationBar(false);
   };
   const openDrawer = () => {
     navigation.openDrawer();
   };
+  
   const getLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      console.error('Permission to access location was denied');
+    if (status !== "granted") {
+      console.error("Permission to access location was denied");
       return;
     }
-  
+
     let location = await Location.getCurrentPositionAsync({});
     return location;
   };
@@ -57,37 +66,30 @@ const [countryName, setcountryName] = useState("");
       const location = await getLocation();
       if (location) {
         const { latitude, longitude } = location.coords;
-        let reverseGeocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+        let reverseGeocode = await Location.reverseGeocodeAsync({
+          latitude,
+          longitude,
+        });
         if (reverseGeocode.length > 0) {
           let { city, country } = reverseGeocode[0];
           setcityName(city);
           setcountryName(country);
-          console.log(`City: ${city}, Country: ${country}`);
+          
         }
       }
     } catch (error) {
       console.error(error);
     }
   };
-  const getAppointments =()=>{
-    const myHeaders = new Headers();
-myHeaders.append("token", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NWRiNGYyYWM3NTliYWE0NmU2MWNkNzYiLCJleHAiOjE3MTQ3NTgxNzEsImlhdCI6MTcxMjE2NjE3MX0.dnJp6n7842Yy1MpjQcDsJj46GMr2w9T9Td3RI2pabJc");
 
-const requestOptions = {
-  method: "GET",
-  headers: myHeaders,
-  redirect: "follow"
-};
-
-fetch("https://family-dr.vercel.app/api/appointments?pageSize=50&page=1&doctorId=65c8dd6ab7653b60ed5234e8", requestOptions)
-  .then((response) => response.text())
-  .then((result) => console.log(result))
-  .catch((error) => console.error(error));
-  }
   useEffect(() => {
     getLocationDetails();
-    getAppointments();
-  }, []);
+  
+    if (user && profiledataslice.profileData && profiledataslice.profileData.data.id) {
+      dispatch(fetchAppointments(profiledataslice.profileData.data.id));
+    }
+  }, [user, dispatch, profiledataslice.profileData, appointmentsdata.data]);
+
   return (
     <Layout>
       <TopBar
@@ -99,11 +101,13 @@ fetch("https://family-dr.vercel.app/api/appointments?pageSize=50&page=1&doctorId
       />
       <View style={styles.subhead}>
         <Text style={styles.title}>Current City: </Text>
-        <Text style={styles.subtitle}>{cityName}, {countryName}</Text>
+        <Text style={styles.subtitle}>
+          {cityName}, {countryName}
+        </Text>
       </View>
       {showNotificationBar && (
         <View style={styles.notificationBar}>
-          {/* Left Section */}
+          
           <View style={styles.leftSection}>
             <Iconify icon="typcn:info-outline" size={28} color={"#FFC107"} />
             <Text style={styles.notificationText}>
@@ -111,7 +115,6 @@ fetch("https://family-dr.vercel.app/api/appointments?pageSize=50&page=1&doctorId
             </Text>
           </View>
 
-          {/* Right Section */}
           <View style={styles.rightSection}>
             <TouchableOpacity>
               <Text style={[styles.linkText, { color: secondaryColor }]}>
@@ -168,43 +171,65 @@ fetch("https://family-dr.vercel.app/api/appointments?pageSize=50&page=1&doctorId
           </View>
         </ImageBackground>
       </View>
-      <CentralTabBar
-        tabs={{
-          title: "My Appointments",
-          viewAllText: "See All",
-          items: [
-            { id: "Pending", label: "Pending" },
-            {
-              id: "Confirmed",
-              label: "Confirmed",
-            },
-            {
-              id: "Completed",
-              label: "Completed",
-            },
-            {
-              id: "Cancel",
-              label: "Cancel",
-            },
-          ],
-        }}
-        renderContent={(selectedTab) => {
-          switch (selectedTab) {
-            case "Pending":
-              return <PendingList navigation={navigation} />;
-            case "Confirmed":
-              return <ConfirmedList navigation={navigation} />;
-            case "Completed":
-              return <CompletedList navigation={navigation} />;
-            case "Cancel":
-              return <Cancel navigation={navigation} />;
-            default:
-              return null;
-          }
-        }}
-        selectedTab={selectedTab}
-        setSelectedTab={setSelectedTab}
-      />
+    {appointmentsdata ===null ?<Text>No Appointments found</Text>:
+        <CentralTabBar
+          tabs={{
+            title: "My Appointments",
+            viewAllText: "See All",
+            items: [
+              { id: "Pending", label: "Pending" },
+              {
+                id: "Confirmed",
+                label: "Confirmed",
+              },
+              {
+                id: "Completed",
+                label: "Completed",
+              },
+              {
+                id: "Cancel",
+                label: "Cancel",
+              },
+            ],
+          }}
+          renderContent={(selectedTab) => {
+            switch (selectedTab) {
+              case "Pending":
+                return (
+                  <PendingList
+                    navigation={navigation}
+                    appointments={appointmentsdata}
+                  />
+                );
+              case "Confirmed":
+                return (
+                  <ConfirmedList
+                    navigation={navigation}
+                    appointments={appointmentsdata}
+                  />
+                );
+              case "Completed":
+                return (
+                  <CompletedList
+                    navigation={navigation}
+                    appointments={appointmentsdata}
+                  />
+                );
+              case "Cancel":
+                return (
+                  <Cancel
+                    navigation={navigation}
+                    appointments={appointmentsdata}
+                  />
+                );
+              default:
+                return null;
+            }
+          }}
+          selectedTab={selectedTab}
+          setSelectedTab={setSelectedTab}
+        />
+        }
     </Layout>
   );
 };

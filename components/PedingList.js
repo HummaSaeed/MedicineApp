@@ -11,37 +11,16 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AntDesign } from '@expo/vector-icons'
 import { primaryColor } from "../utils/colors";
 
-const data = [
-  {
-    id: "1",
-    appointmentDate: "Thu 01 Jun, 12:00 PM",
-    status: "Pending",
-    doctorName: "Dr. Sam Roberts",
-    doctorDescription: "In Person",
-    Location: "Pakistan",
-    run_token:234,
-      your_token:123
-  },
-  {
-    id: "2",
-    appointmentDate: "Thu 01 Jun, 12:00 PM",
-    status: "Pending",
-    doctorName: "Dr. Sam Roberts",
-    Location:  "Pakistan",
-    run_token:234,
-      your_token:123
-  },
-  // Add more data as needed
-];
-export const renderItem = ({ item, navigation }) => {
 
+export const renderItem = ({ item, navigation }) => {
+ 
 return(
   <View style={styles.card}>
     {/* Top Section */}
     <View style={styles.topSection}>
       <View style={styles.leftTopSection}>
         <Text style={styles.appointmentDateText}>Appointment Date</Text>
-        <Text style={styles.appointmentDate}>{item.appointmentDate}</Text>
+        <Text style={styles.appointmentDate}>{item.date}</Text>
       </View>
       <View style={styles.rightTopSection}>
         <View
@@ -81,13 +60,13 @@ return(
         {/* Doctor Name and Description */}
       </View>
       <View style={styles.doctorInfo}>
-        <Text style={styles.doctorName}>{item.doctorName}</Text>
-        <Text style={styles.doctorDescription}>Type: {item.doctorDescription}</Text>
-        <Text style={styles.doctorDescription}>Location: {item.Location}</Text>
-      {item.status ==="Confirmed" &&(
+        <Text style={styles.doctorName}>{item.doctor.name}</Text>
+        <Text style={styles.doctorDescription}>Type: {item.appointmentType}</Text>
+        <Text style={styles.doctorDescription}>Location: {item.location}</Text>
+      {item.status ==="Approved" &&(
         <>
         <Text style={styles.doctorDescription}>Running Token: {item.run_token}</Text>
-        <Text style={styles.doctorDescription}>Running Token: {item.your_token}</Text>
+        <Text style={styles.doctorDescription}>Your Token: {item.your_token}</Text>
       </>
       )}
       </View>
@@ -127,10 +106,12 @@ return(
 )
   
 }
-const PedingList = ({ navigation }) => {
+const PedingList = ({ navigation,appointments }) => {
+  const pendingAppointments = appointments.data.appointments.filter(appointment => appointment.status === "Pending");
   return (
+    
     <FlatList
-      data={data}
+      data={pendingAppointments}
       renderItem={({ item }) => renderItem({ item, navigation })}
       keyExtractor={(item) => item.id}
       style={styles.container}

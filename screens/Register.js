@@ -1,5 +1,6 @@
 // Register.js
 import React, { useState, useRef } from "react";
+import Toast from 'react-native-toast-message';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions,Image, ImageBackground, ScrollView } from "react-native";
 import backgroundImage from "../assets/bg.png";
 import PrimaryButton from '../components/PrimaryButton'
@@ -50,13 +51,18 @@ const Register = ({ navigation, route }) => {
       .then((response) => response.json())
       .then((result) => {
         // Handle successful verification response here
-        console.log(result);
+        // console.log(result);
         if(result.success==true){
+          
            navigation.navigate("Dashboard");
         }
       })
       .catch((error) => {
-        // Handle error
+        Toast.show({
+          type: 'error',
+          text1: 'Verification Failed',
+          text2: 'The OTP entered is incorrect.'
+        });
         console.error(error);
         
       });

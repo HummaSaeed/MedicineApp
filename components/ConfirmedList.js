@@ -5,33 +5,12 @@ import {
 } from "react-native";
 import { renderItem } from "./PedingList";
 
-const data = [
-    {
-      id: "1",
-      appointmentDate: "Thu 01 Jun, 12:00 PM",
-      status: "Confirmed",
-      doctorName: "Dr. Sam Roberts",
-      doctorDescription: "In-Person",
-      Location:  "Pakistan",
-      token:234
-    },
-    {
-      id: "2",
-      appointmentDate: "Thu 01 Jun, 12:00 PM",
-      status: "Confirmed",
-      doctorName: "Dr. Sam Roberts",
-      doctorDescription: "Online",
-      Location:  "Pakistan",
-      token:234
-    },
-    // Add more data as needed
-  ];
 
-const ConfirmedList = ({navigation}) => {
-  
+const ConfirmedList = ({navigation,appointments}) => {
+  const confirmedAppointments = appointments.data.appointments.filter(appointment => appointment.status === "Approved");
   return (
     <FlatList
-    data={data}
+    data={confirmedAppointments}
     renderItem={({ item }) => renderItem({ item, navigation })}
     keyExtractor={(item) => item.id}
     style={styles.container}

@@ -1,31 +1,39 @@
 // EditProfileScreen.js
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  StyleSheet,
-  Text,
-  View,
-  ImageBackground,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Platform,
+  StyleSheet, View, Image, TouchableOpacity, ScrollView, Text, Alert
 } from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import Layout from "./Layout";
-import TopBar from "../components/TopBar";
-import Input from "../components/Input";
-import { MaterialIcons } from "@expo/vector-icons";
-import PrimaryButton from "../components/PrimaryButton";
-import * as ImagePicker from "react-native-image-picker";
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Layout from './Layout';
+import TopBar from '../components/TopBar';
+import Input from '../components/Input';
+import { MaterialIcons } from '@expo/vector-icons';
+import PrimaryButton from '../components/PrimaryButton';
+import * as ImagePicker from 'react-native-image-picker';
+import { updateProfile, resetProfile } from '../auth/ProfileSlice'; 
 
-const EditProfileScreen = ({ navigation, route }) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [gender, setGender] = useState("");
-  const [dob, setDob] = useState("");
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [email, setEmail] = useState("");
+const EditProfileScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const { profileData, status, error } = useSelector(state => state.profile);
+  const user = useSelector(state => state.auth.user); // Assuming auth state contains user details
   const [selectedImage, setSelectedImage] = useState(null);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    gender: '',
+    dob: '',
+    mobileNumber: '',
+    email: '',
+    // selectedImage: null
+  });
+
+  const handleInputChange = (name, value) => {
+    setFormData(prevState => ({ ...prevState, [name]: value }));
+  };
+  const openDrawer = () => {
+    navigation.openDrawer();
+  };
 
   const handleImagePick = () => {
     const options = {
@@ -38,43 +46,46 @@ const EditProfileScreen = ({ navigation, route }) => {
 
     ImagePicker.launchImageLibrary(options, (response) => {
       if (response.uri) {
-        setSelectedImage(response);
-        // You can handle the selected image, e.g., upload it to a server
-        // or save it in the local state for further use.
+        dispatch(setSelectedImage(response.uri));
       }
     });
   };
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
 
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
-
-  const handleConfirm = (selectedDate) => {
+  const handleConfirm = (date) => {
+    const formattedDate = date.toISOString().split('T')[0];
+    dispatch(setDob(formattedDate));
     hideDatePicker();
-    // Format the date as needed
-    const formattedDate = selectedDate.toISOString().split("T")[0];
-    setDob(formattedDate);
   };
 
   const handleSave = () => {
-    // Implement your save logic here
-    // You can save the user's profile information to your backend or perform any other action.
+    dispatch(updateProfile({
+      ...formData,
+      role: user.role.name,
+      userId: user.id,
+      firstTime: "No", // Example, adapt based on your logic
+      myDetails: "Details here",
+      ageGroup: "Adult",
+      primaryConcern: "General Health",
+      sessionType: "Online"
+    }));
   };
+
 
   return (
     <Layout>
-      <TopBar
-        lefticon={"menu"}
-        lefticonPress={()=>{navigation.openDrawer()}}
+       <TopBar
+        lefticonPress={openDrawer}
+        lefticon="menu"
         heading={"Edit Profile"}
+        name={"notifications-sharp"}
         navigation={navigation}
       />
+      <ScrollView style={styles.container}>
       <View style={{ alignItems: "center" }}>
         <TouchableOpacity
           style={styles.circularImageUploader}
@@ -90,54 +101,31 @@ const EditProfileScreen = ({ navigation, route }) => {
           )}
         </TouchableOpacity>
       </View>
-      <View style={styles.container}>
-        <Input
-          label="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
-        />
-        <Input label="Last Name" value={lastName} onChangeText={setLastName} />
-        <Input label="Gender" value={gender} onChangeText={setGender} />
-
-        {/* DOB Input with Date Picker */}
+        <Input label="First Name" value={formData.firstName} onChangeText={text => handleInputChange('firstName', text)} />
+        <Input label="Last Name" value={formData.lastName} onChangeText={text => handleInputChange('lastName', text)} />
+        <Input label="Gender" value={formData.gender} onChangeText={text => handleInputChange('gender', text)} />
         <Text style={styles.label}>Date of Birth</Text>
         <TouchableOpacity onPress={showDatePicker}>
           <View style={styles.input}>
             
-            <Text>{dob}</Text>
+            <Text></Text>
           </View>
         </TouchableOpacity>
-        <DateTimePickerModal
+        {/* <DateTimePickerModal
           isVisible={isDatePickerVisible}
           mode="date"
           onConfirm={handleConfirm}
           onCancel={hideDatePicker}
-        />
-
-        <Input
-          label="Mobile Number"
-          value={mobileNumber}
-          onChangeText={setMobileNumber}
-        />
-        <Input label="Email" value={email} onChangeText={setEmail} />
-
-        {/* Save button */}
-        <View style={{ paddingHorizontal: 20 }}>
-          <PrimaryButton
-            title={"Save Changes"}
-            backgroundColor={"#0E4889"}
-            textColor={"white"}
-            borderColor={"#0E4889"}
-            onPress={handleSave}
-          />
-          <PrimaryButton
-            title={"Cancel"}
-            backgroundColor={"transparent"}
-            textColor={"#D51D33"}
-            borderColor={"white"}
-          />
+        /> */}
+        <Input label="Mobile Number" value={formData.mobileNumber} onChangeText={text => handleInputChange('mobileNumber', text)} />
+        <Input label="Email" value={formData.email} onChangeText={text => handleInputChange('email', text)} />
+        <View style={styles.buttonContainer}>
+          <PrimaryButton title="Save Changes" onPress={handleSave} />
+          <PrimaryButton title="Cancel" onPress={() => dispatch(resetProfile())} style={styles.cancelButton} />
         </View>
-      </View>
+        {status === 'loading' && <Text>Saving...</Text>}
+        {error && <Text>Error: {error}</Text>}
+      </ScrollView>
     </Layout>
   );
 };
@@ -151,7 +139,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: "center",
+    // justifyContent: "center",
   },
   input: {
     height: 50,
@@ -160,7 +148,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#D4D4D4",
     paddingHorizontal: 20,
     marginBottom: 15,
-    justifyContent: "center",
+    // justifyContent: "center",
   },
   label: {
     fontFamily: "Barlow-Regular",
